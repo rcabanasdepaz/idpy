@@ -99,3 +99,5 @@ isinstance(pa_b, ProbabilityPotential)
 
 pa_b.is_valid_cpd()
 pb.is_valid_cpd()
+
+pa_b.domain

@@ -85,6 +85,8 @@ class Potential(ABC):
 
 
     def compare(self, other, operation):
+        if other == None:
+            return False
         #check that are comparable
         if self.domain != other.domain:
             return False
