@@ -4,11 +4,19 @@ import networkx as nx
 
 
 from idpy.potentials.discrete.potential import Potential, UtilityPotential, ProbabilityPotential, KIND
+from idpy.util.math import PartialOrder
+
+class NODE_TYPES(IntEnum):
+    CHANCE = 0
+    DECISION = 1
+    UTILITY = 2
 
 
 class IDiagram():
     def __init__(self):
         self._graph = nx.DiGraph()
+        self._partial_order = None
+
 
     @property
     def graph(self):
@@ -30,6 +38,10 @@ class IDiagram():
     @property
     def utilitynodes(self):
         return self.nodes_of_type(NODE_TYPES.UTILITY)
+
+    @property
+    def variables(self):
+        return self.chancenodes + self.decisions
 
 
 
@@ -60,6 +72,7 @@ class IDiagram():
         if check_flag:
             self.__check_arc_additon(parent,child)
         self._graph.add_edge(parent, child)
+        self._partial_order = None
 
     def add_arcs(self, *arc_list):
         for a in arc_list:
@@ -135,6 +148,8 @@ class IDiagram():
             return {n:p for n,p in pot_dict.items() if p is not None}
         return pot_dict
 
+
+
     @property
     def potentials(self):
         return self.get_potentials_from_nodes(self.utilitynodes+self.chancenodes)
@@ -182,7 +197,6 @@ class IDiagram():
 
     def add_nonforgetting(self):
         d = self.decisions
-
         if len(d)>1:
             for i in range(0,len(d)-1):
                 pred_to_add = self.get_direct_predecessors(d[i]) + [d[i]]
@@ -191,9 +205,47 @@ class IDiagram():
                         self.add_arc(p, d[j], check_flag=False)
 
 
+    @property
+    def partial_order(self):
+        if self._partial_order == None:
+            self.__compute_partial_order()
+        return self._partial_order
 
 
-class NODE_TYPES(IntEnum):
-    CHANCE = 0
-    DECISION = 1
-    UTILITY = 2
+
+    def __compute_partial_order(self):
+        vars = set(self.variables.copy())
+        order_list = []
+        for d in self.decisions:
+
+            pred_d = set(self.get_direct_predecessors(d)).intersection(vars)
+            if len(pred_d)>0:
+                order_list.append(pred_d)
+                vars = vars - pred_d
+
+            order_list.append({d})
+            vars = vars - {d}
+
+        order_list.append(vars)
+
+        self._partial_order = PartialOrder(order_list)
+
+
+
+
+
+    def __repr__(self):
+
+
+        str_pots = ", ".join([p.short_repr() for p in self.potentials.values()])
+        str_dec = ", ".join(d for d in self.decisions)
+        str_chance = ", ".join(d for d in self.chancenodes)
+        str_util = ", ".join(d for d in self.utilitynodes)
+
+        return f"<IDiagram [{str_dec}], [{str_util}], [{str_chance}], [{str_pots}]>"
+
+
+
+
+
+

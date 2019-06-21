@@ -2,7 +2,7 @@ import numpy as np
 from idpy.potentials.discrete.potential import Potential, UtilityPotential, ProbabilityPotential, KIND
 
 
-def build_potential_table(kind, *args, **kwargs):
+def potential_table(kind, *args, **kwargs):
 
     base = ProbabilityPotential if kind==KIND.PROBABILITY else UtilityPotential
 
@@ -11,7 +11,7 @@ def build_potential_table(kind, *args, **kwargs):
 
             ## some preprocess and checks ??
             # ....
-            self.builder = build_potential_table
+            self.builder = potential_table
             super().__init__(kind=kind, values=np.array(values), variables=variables, head=head)
 
         @property
@@ -34,8 +34,7 @@ def build_potential_table(kind, *args, **kwargs):
         def reorder(self, var_order):
             if len(self.variables)<2:
                 return
-            idx_var_order = [self.get_var_index(v) for v in var_order]
-            self.get_var_index("a")
+            idx_var_order = [var_order.index(v) for v in self._variables]
             self._values = np.moveaxis(self.values, range(np.ndim(self.values)), idx_var_order)
             self._variables = var_order
 
@@ -72,32 +71,9 @@ def build_potential_table(kind, *args, **kwargs):
 
         def _reduce_sum(self, axis):
             return np.sum(self.values, axis)
-
+        def _reduce_max(self, axis):
+            return np.max(self.values, axis)
 
 
     return PotentialTable(kind, *args, **kwargs)
 
-
-p = build_potential_table(KIND.PROBABILITY, [[0.3,0.5, 0.4], [0.7,0.5, 0.6]], variables=["a", "b"], head=["a"])
-u = build_potential_table(KIND.UTILITY, [20,30], variables=["a"])
-
-p==p
-
-# TODO:
-# review head policy
-# marginalize operations
-# graph representation
-
-pmarg = p.sum_marg("b") # check results
-
-
-pa_b = build_potential_table(KIND.PROBABILITY, [[0.3,0.5, 0.4], [0.7,0.5, 0.6]], variables=["a", "b"], head=["a"])
-
-pb = build_potential_table(KIND.PROBABILITY, [0.4, 0.2, 0.5], variables=["b"])
-
-isinstance(pa_b, ProbabilityPotential)
-
-pa_b.is_valid_cpd()
-pb.is_valid_cpd()
-
-pa_b.domain

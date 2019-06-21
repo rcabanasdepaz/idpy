@@ -1,6 +1,8 @@
 from abc import ABC, abstractmethod
 import numpy as np
 from enum import IntEnum
+from functools import reduce
+
 
 class Potential(ABC):
     def __init__(self, values, variables, head):
@@ -57,6 +59,9 @@ class Potential(ABC):
         return self.cardinality[self.get_var_index(v)]
 
     def get_var_index(self, v):
+        if v not in self.variables:
+            raise ValueError(f"Error: {v} not present in {self.short_repr()}")
+
         gen = (i for i, e in enumerate(self.variables) if e == v)
         return next(gen)
 
@@ -69,19 +74,40 @@ class Potential(ABC):
     def _mult_values(op1, op2):
         pass
 
-    def sum_marg(self, var):
+
+    def copy(self):
+        new_vals = self.values.copy()
+        new_kind = self.kind
+        new_vars = self.variables.copy()
+
+        new_head = []
+        if new_kind is KIND.PROBABILITY:
+            new_head = self.head.copy()
+
+        return self.builder(new_kind, new_vals, new_vars, new_head)
+
+
+
+    def _marg(self, var, operation):
 
         if var not in self.variables:
             raise ValueError(f"Error, variable '{var}' not present in the domain")
 
-        new_vals = self._reduce_sum(self.get_var_index(var))
+        new_vals = operation(self.get_var_index(var))
         new_kind = self.kind
         new_vars = [v for v in self.variables if v != var]
 
+        new_head = []
         if new_kind is KIND.PROBABILITY:
             new_head = [v for v in new_vars if v in self.head]
 
         return self.builder(new_kind, new_vals, new_vars, new_head)
+
+    def sum_marg(self, var):
+        return self._marg(var, self._reduce_sum)
+    def max_marg(self, var):
+        return self._marg(var, self._reduce_max)
+
 
 
     def compare(self, other, operation):
@@ -98,8 +124,8 @@ class Potential(ABC):
 
 
     def combine(self, other, operation):
-        op1 = self
-        op2 = other
+        op1 = self.copy()
+        op2 = other.copy()
 
         if op1.__class__.__name__ != op2.__class__.__name__:
             raise ValueError("Multiplying 2 potentials of different structure type")
@@ -156,6 +182,9 @@ class Potential(ABC):
     def __req__(self, other):
         return other.compare(self, other._eq_values)
 
+    def __hash__(self):
+        return hash(self.short_repr())
+
     def __repr__(self):
 
         card_str = ",".join([f"{v}:{self.get_var_card(v)}" for v in self.variables])
@@ -163,6 +192,26 @@ class Potential(ABC):
         return f"<Potential {self._kind.name[0:4].lower()}({self.str_vars}), cardinality = ({card_str})>"
 
 
+    def short_repr(self):
+        return f"{self._kind.name[0:1].lower()}({self.str_vars})"
+
+    @staticmethod
+    def prod(pot_list):
+        res =  None
+        if len(pot_list) > 1:
+            res = reduce(lambda p1, p2: p1 * p2, pot_list)
+        elif len(pot_list) == 1:
+            res = list(pot_list)[0]
+        return res
+
+    @staticmethod
+    def sum(pot_list):
+        res =  None
+        if len(pot_list) > 1:
+            res = reduce(lambda p1, p2: p1 + p2, pot_list)
+        elif len(pot_list) == 1:
+            res = list(pot_list)[0]
+        return res
 
 
 
