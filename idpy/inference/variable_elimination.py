@@ -14,6 +14,11 @@ class VariableElimination:
                 raise ValueError("Wrong removal order")
             self.removal_order = (v for v in removal_order)
 
+        self.meu = None
+        self.optimal_policy = {}
+        self.expected_util = {}
+
+
 
     def run(self):
 
@@ -22,6 +27,8 @@ class VariableElimination:
         utils = set(self.idiag.util_potentials.values())
 
         for Y in self.removal_order:
+            print(f"{probs} {utils}")
+            print(f"remove {Y}")
 
             # select potentials with y
             probs_y = {p for p in probs if Y in p.domain.keys()}
@@ -31,20 +38,32 @@ class VariableElimination:
 
             py = Potential.prod(probs_y)
             uy = Potential.sum(utils_y)
-
             # remove
 
             if idiag.is_node_type(Y, NODE_TYPES.CHANCE):
                 pmarg = py.sum_marg(Y)
                 umarg = (py * uy).sum_marg(Y)/ pmarg
             else:
-                pass # todo
+                if py != None:
+                    pmarg = py.restrict({Y:0})
+                umarg = uy.max_marg(Y)
+
+                # record the optimal policy and EU for decision
+                self.optimal_policy.update({Y:uy.arg_max(Y)})
+                self.expected_util.update({Y:uy})
 
             # update
+            probs = probs - probs_y
+            if py != None:
+                probs = set.union(probs, {pmarg})
+            utils = set.union(utils - utils_y, {umarg})
 
-            probs = probs - probs_y + {pmarg}
-            utils = utils - utils_y + {umarg}
+            # 2 potentials with the same domain
 
+            print(f"{probs} {utils}")
+        pass
+
+        self.meu = list(utils)[0].values
 
 
 
@@ -59,5 +78,16 @@ idiag = wildcatter()
 idiag.add_nonforgetting()
 self = VariableElimination(idiag, removal_order)
 
+
+idiag.prob_potentials["S"].restrict({"S":0})
+
 self.run()
 
+self.meu
+# preconditions
+
+
+
+self.meu
+self.expected_util["D"].values
+self.optimal_policy["D"].values

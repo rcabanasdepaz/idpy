@@ -74,6 +74,23 @@ def potential_table(kind, *args, **kwargs):
         def _reduce_max(self, axis):
             return np.max(self.values, axis)
 
+        def _reduce_argmax(self, axis):
+            return np.argmax(self.values, axis)
+
+        def _restrict_values(self, conf):
+
+            items = []
+            for v in self._variables:
+                if v in conf.keys():
+                    items.append(conf[v])
+                else:
+                    items.append(slice(None))
+
+            return self._values[tuple(items)]
+
+
+
+
 
     return PotentialTable(kind, *args, **kwargs)
 

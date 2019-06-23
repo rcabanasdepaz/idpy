@@ -3,6 +3,7 @@ import numpy as np
 from enum import IntEnum
 from functools import reduce
 
+import uuid
 
 class Potential(ABC):
     def __init__(self, values, variables, head):
@@ -14,7 +15,7 @@ class Potential(ABC):
             raise ValueError("Cardinality Error")
 
         self._values = values
-        self._variables = variables
+        self._variables = list(variables)
 
         super().__init__()
 
@@ -107,8 +108,8 @@ class Potential(ABC):
         return self._marg(var, self._reduce_sum)
     def max_marg(self, var):
         return self._marg(var, self._reduce_max)
-
-
+    def arg_max(self, var):
+        return self._marg(var, self._reduce_argmax)
 
     def compare(self, other, operation):
         if other == None:
@@ -151,6 +152,26 @@ class Potential(ABC):
 
         return self.builder(new_kind, new_vals, new_vars, new_head)
 
+
+
+
+    def restrict(self, conf):
+
+        # reorder cconfiguration
+        conf = {v:conf[v] for v in self.variables if v in conf.keys()}
+
+        new_kind = self.kind
+        new_vals = self._restrict_values(conf)
+        new_vars = [v for v in self.variables if v not in conf.keys()]
+
+        new_head = []
+        if new_kind is KIND.PROBABILITY:
+            new_head = [v for v in new_vars if v in self.head]
+
+
+        return self.builder(new_kind, new_vals, new_vars, new_head)
+
+
     def __mul__(self, other):
         return self.combine(other, self._mult_values)
 
@@ -183,7 +204,8 @@ class Potential(ABC):
         return other.compare(self, other._eq_values)
 
     def __hash__(self):
-        return hash(self.short_repr())
+        return id(self)
+
 
     def __repr__(self):
 

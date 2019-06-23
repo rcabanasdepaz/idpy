@@ -21,13 +21,13 @@ def wildcatter():
     id.add_arcs((t,d), (t,s), (t,c), (o,s), (o,p), (s,d), (d,p))
 
     v=np.array([
-    [[0.1, 0.3, 0.5], [0.33, 0.33, 0.33]],
-    [[0.3, 0.4, 0.4], [0.33, 0.33, 0.33]],
-    [[0.6, 0.3, 0.1], [0.34, 0.34, 0.34]]
+    [[0.1, 0.3, 0.5], [1/3, 1/3, 1/3]],
+    [[0.3, 0.4, 0.4], [1/3, 1/3, 1/3]],
+    [[0.6, 0.3, 0.1], [1/3, 1/3, 1/3]]
     ])
 
     pS_TO = potential_table(KIND.PROBABILITY, v, variables=[s, t, o])
-    pO = potential_table(KIND.PROBABILITY, [0.5, 0.3, 0.3], variables=[o])
+    pO = potential_table(KIND.PROBABILITY, [0.5, 0.3, 0.2], variables=[o])
 
     uDO = potential_table(KIND.UTILITY, [[-70, 50, 200], [0, 0, 0]], variables = [d, o])
 
