@@ -14,11 +14,19 @@ class VariableElimination:
                 raise ValueError("Wrong removal order")
             self.removal_order = (v for v in removal_order)
 
+        self.preconditions()
+
         self.meu = None
         self.optimal_policy = {}
         self.expected_util = {}
 
 
+    def preconditions(self):
+        self.idiag.add_nonforgetting()
+        is_valid, msg = self.idiag.is_valid_id()
+
+        if not is_valid:
+            for m in msg: print(msg)
 
     def run(self):
 
@@ -68,26 +76,18 @@ class VariableElimination:
 
 
 
-removal_order = ["O", "D", "S", "T"]
-Y = "O"
+
 
 from idpy.models.examples import wildcatter
-from idpy.util.math import PartialOrder
 
 idiag = wildcatter()
-idiag.add_nonforgetting()
-self = VariableElimination(idiag, removal_order)
+removal_order = ["O", "D", "S", "T"]
 
+inf = VariableElimination(idiag, removal_order)
 
-idiag.prob_potentials["S"].restrict({"S":0})
+inf.run()
 
-self.run()
+inf.meu
+inf.expected_util["D"].values
+inf.optimal_policy["D"].values
 
-self.meu
-# preconditions
-
-
-
-self.meu
-self.expected_util["D"].values
-self.optimal_policy["D"].values
