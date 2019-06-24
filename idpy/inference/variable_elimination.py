@@ -1,24 +1,44 @@
 from functools import reduce
 from idpy.potentials.discrete.potential import Potential
 from idpy.models.idiagram import NODE_TYPES
+import random
+
+from idpy.inference.heuristics import get_heuristic
+
 
 
 class VariableElimination:
 
 
-    def __init__(self, idiag, removal_order):
+    def __init__(self, idiag, removal_order=None, heuristic_name="random_choice"):
 
         self.idiag = idiag
         if isinstance(removal_order, list):
             if not idiag.partial_order.is_consistent(list(reversed(removal_order))):
                 raise ValueError("Wrong removal order")
-            self.removal_order = (v for v in removal_order)
+            self._removal_order = removal_order
+        else:
+            self._heuristic = get_heuristic(heuristic_name)
+
+
 
         self.preconditions()
 
         self.meu = None
         self.optimal_policy = {}
         self.expected_util = {}
+        self._removed = []
+
+
+    def removal_order(self):
+        while set(self._removed) != set(self.idiag.variables):
+            if self._removal_order:
+                yield self._removal_order.pop(0)
+            else:
+                yield self._heuristic(self._probs, self._utils, self._removable_vars())
+
+
+
 
 
     def preconditions(self):
@@ -28,22 +48,33 @@ class VariableElimination:
         if not is_valid:
             for m in msg: print(msg)
 
+
+    def _removable_vars(self):      # move to partial order?
+
+        if not self._removed:
+            vars = self.idiag.partial_order._sets[-1]
+        else:
+
+            last_node = self._removed[-1]
+            vars = self.idiag.partial_order.siblings(last_node) - set(self._removed)
+            if not vars:
+                vars = set(self.idiag.partial_order.graph.predecessors(last_node))
+
+        return vars
+
     def run(self):
 
         # prepare current sets
-        probs = set(self.idiag.prob_potentials.values())   #make pots hashables
-        utils = set(self.idiag.util_potentials.values())
+        self._probs = set(self.idiag.prob_potentials.values())   #make pots hashables
+        self._utils = set(self.idiag.util_potentials.values())
 
-        for Y in self.removal_order:
-            print(f"{probs} {utils}")
-            print(f"remove {Y}")
-
+        for Y in self.removal_order():
             # select potentials with y
-            probs_y = {p for p in probs if Y in p.domain.keys()}
-            utils_y = {u for u in utils if Y in u.domain.keys()}
+            probs_y = {p for p in self._probs if Y in p.domain.keys()}
+            utils_y = {u for u in self._utils if Y in u.domain.keys()}
+            print(self._removable_vars())
 
             # combine
-
             py = Potential.prod(probs_y)
             uy = Potential.sum(utils_y)
             # remove
@@ -61,33 +92,28 @@ class VariableElimination:
                 self.expected_util.update({Y:uy})
 
             # update
-            probs = probs - probs_y
+            self._probs = self._probs - probs_y
             if py != None:
-                probs = set.union(probs, {pmarg})
-            utils = set.union(utils - utils_y, {umarg})
+                self._probs = set.union(self._probs, {pmarg})
+            self._utils = set.union(self._utils - utils_y, {umarg})
 
-            # 2 potentials with the same domain
 
-            print(f"{probs} {utils}")
-        pass
+            self._removed.append(Y)
 
-        self.meu = list(utils)[0].values
 
+        self.meu = list(self._utils)[0].values
 
 
 
+if __name__ == "__main__":
 
+    from idpy.models.examples import wildcatter
 
-from idpy.models.examples import wildcatter
+    idiag = wildcatter()
+    removal_order = ["O", "D", "S", "T"]
 
-idiag = wildcatter()
-removal_order = ["O", "D", "S", "T"]
+    inf = VariableElimination(idiag, removal_order)
+    inf.run()
 
-inf = VariableElimination(idiag, removal_order)
-
-inf.run()
-
-inf.meu
-inf.expected_util["D"].values
-inf.optimal_policy["D"].values
-
+    inf.meu
+    inf.optimal_policy
