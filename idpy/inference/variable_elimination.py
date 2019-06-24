@@ -10,24 +10,27 @@ from idpy.inference.heuristics import get_heuristic
 class VariableElimination:
 
 
-    def __init__(self, idiag, removal_order=None, heuristic_name="random_choice"):
+    def __init__(self, idiag, removal_order="random_choice"):
 
         self.idiag = idiag
         if isinstance(removal_order, list):
             if not idiag.partial_order.is_consistent(list(reversed(removal_order))):
                 raise ValueError("Wrong removal order")
             self._removal_order = removal_order
+        elif isinstance(removal_order, str):
+            self._heuristic = get_heuristic(removal_order)
         else:
-            self._heuristic = get_heuristic(heuristic_name)
-
-
+            raise ValueError("wrong format for input parameter removal_order")
 
         self.preconditions()
 
-        self.meu = None
-        self.optimal_policy = {}
-        self.expected_util = {}
-        self._removed = []
+
+    def __reset_results(self,):
+
+            self.meu = None
+            self.optimal_policy = {}
+            self.expected_util = {}
+            self._removed = []
 
 
     def removal_order(self):
@@ -36,9 +39,6 @@ class VariableElimination:
                 yield self._removal_order.pop(0)
             else:
                 yield self._heuristic(self._probs, self._utils, self._removable_vars())
-
-
-
 
 
     def preconditions(self):
@@ -64,6 +64,8 @@ class VariableElimination:
 
     def run(self):
 
+        self.__reset_results()
+
         # prepare current sets
         self._probs = set(self.idiag.prob_potentials.values())   #make pots hashables
         self._utils = set(self.idiag.util_potentials.values())
@@ -72,7 +74,6 @@ class VariableElimination:
             # select potentials with y
             probs_y = {p for p in self._probs if Y in p.domain.keys()}
             utils_y = {u for u in self._utils if Y in u.domain.keys()}
-            print(self._removable_vars())
 
             # combine
             py = Potential.prod(probs_y)
@@ -115,5 +116,5 @@ if __name__ == "__main__":
     inf = VariableElimination(idiag, removal_order)
     inf.run()
 
-    inf.meu
-    inf.optimal_policy
+    print(inf.meu)
+    print(inf.optimal_policy["D"].values)
