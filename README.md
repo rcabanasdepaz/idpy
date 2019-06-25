@@ -13,6 +13,11 @@ inf = VariableElimination(idiag, removal_order)
 
 inf.run()
 
+```
+
+Print the results: 
+
+```python
 
 print("\n====== Results ====== ")
 print(f"MEU = {inf.meu}")
