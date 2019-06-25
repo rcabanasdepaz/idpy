@@ -25,7 +25,7 @@ def potential_table(kind, *args, **kwargs):
         @staticmethod
         def get_unity(dict_vars):
 
-            return PotentialTable(kind.PROBABILITY,
+            return PotentialTable(KIND.PROBABILITY,
                                   np.ones(tuple(dict_vars.values())),
                                   variables = list(dict_vars.keys()),
                                   head=[])

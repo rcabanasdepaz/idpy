@@ -1,7 +1,5 @@
-from functools import reduce
 from idpy.potentials.discrete.potential import Potential
 from idpy.models.idiagram import NODE_TYPES
-import random
 
 from idpy.inference.heuristics import get_heuristic
 
@@ -67,7 +65,7 @@ class VariableElimination:
         self.__reset_results()
 
         # prepare current sets
-        self._probs = set(self.idiag.prob_potentials.values())   #make pots hashables
+        self._probs = set(self.idiag.prob_potentials.values())
         self._utils = set(self.idiag.util_potentials.values())
 
         for Y in self.removal_order():
@@ -80,7 +78,7 @@ class VariableElimination:
             uy = Potential.sum(utils_y)
             # remove
 
-            if idiag.is_node_type(Y, NODE_TYPES.CHANCE):
+            if self.idiag.is_node_type(Y, NODE_TYPES.CHANCE):
                 pmarg = py.sum_marg(Y)
                 umarg = (py * uy).sum_marg(Y)/ pmarg
             else:
