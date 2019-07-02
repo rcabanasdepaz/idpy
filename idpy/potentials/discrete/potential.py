@@ -78,7 +78,7 @@ class Potential(ABC):
 
 
     def copy(self):
-        new_vals = self.values.copy()
+        new_vals = self._copy_values()
         new_kind = self.kind
         new_vars = self.variables.copy()
 
