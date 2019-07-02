@@ -1,9 +1,7 @@
 from abc import ABC, abstractmethod
 import numpy as np
 from enum import IntEnum
-from functools import reduce
-
-import uuid
+from functools import reduce, wraps
 
 class Potential(ABC):
     def __init__(self, values, variables, head):
@@ -18,6 +16,9 @@ class Potential(ABC):
         self._variables = list(variables)
 
         super().__init__()
+
+    def __new__(cls, *args, **kwargs):
+        return super().__new__(cls)
 
     @property
     def variables(self):
@@ -261,6 +262,9 @@ class ProbabilityPotential(Potential):
 
         super().__init__(*args, **kwargs)
 
+    def __new__(cls, *args, **kwargs):
+        return super().__new__(cls, *args, **kwargs)
+
     def is_valid_cpd(self):
         p = self
         for v in self.head:
@@ -285,3 +289,35 @@ class UtilityPotential(Potential):
 
         super().__init__(*args, **kwargs)
 
+    def __new__(cls, *args, **kwargs):
+        return super().__new__(cls, *args, **kwargs)
+
+
+
+
+
+
+def prob_or_util(cls):
+    """
+    A function that accepts another function
+    """
+
+    @wraps(cls)
+    def wrapper(*args, **kwargs):
+        """
+        A wrapping function
+        """
+        def __new__(cls, *args, **kwargs):
+            kind = args[0]
+            base = ProbabilityPotential if kind == KIND.PROBABILITY else UtilityPotential
+
+            __dict__ = dict(cls.__dict__)
+            new_type = type(cls.__name__, (base,), __dict__)
+            obj = base.__new__(new_type, *args, **kwargs)
+
+            obj.__init__(*args, **kwargs)
+            return obj
+        setattr(cls, "__new__", __new__)
+        return cls(*args, **kwargs)
+
+    return wrapper
