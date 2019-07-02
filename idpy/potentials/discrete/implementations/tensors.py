@@ -15,7 +15,7 @@ class PotentialTensor(idpot.ProbabilityPotential, idpot.UtilityPotential):
             return PotentialTensor(kind, *args, **kwargs)
 
         self.builder = builder
-        super(self.__class__, self).__init__(kind=kind, values=tf.convert_to_tensor(values), variables=variables, head=head)
+        super(self.__class__, self).__init__(kind=kind, values=tf.cast(values, dtype=tf.float32), variables=variables, head=head)
 
     @property
     def cardinality(self):
@@ -37,7 +37,7 @@ class PotentialTensor(idpot.ProbabilityPotential, idpot.UtilityPotential):
     def reorder(self, var_order):
         if len(self.variables)<2:
             return
-        idx_var_order = [var_order.index(v) for v in self._variables]
+        idx_var_order = [self._variables.index(v) for v in var_order]
         self._values = tf.transpose(self.values, perm=idx_var_order)
         self._variables = var_order
 

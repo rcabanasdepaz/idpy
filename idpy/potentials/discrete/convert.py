@@ -23,3 +23,8 @@ def tensor_to_table(ptensor):
 
     return PotentialTable(*args)
 
+
+def convert_id(idiag, fn):
+    idiag.add_potentials({v: fn(p) for v, p in idiag.potentials.items()})
+
+

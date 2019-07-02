@@ -142,6 +142,7 @@ class Potential(ABC):
 
         op2.reorder(op1.variables)
 
+
         new_kind = min(op1.kind, op2.kind)
         new_vals = operation(op1,op2)
         new_vars = list(new_domain.keys())
@@ -212,7 +213,8 @@ class Potential(ABC):
 
         card_str = ",".join([f"{v}:{self.get_var_card(v)}" for v in self.variables])
 
-        return f"<Potential {self._kind.name[0:4].lower()}({self.str_vars}), cardinality = ({card_str})>"
+        return f"<{self.__class__.__name__} {self._kind.name[0:4].lower()}({self.str_vars}), " \
+            f"cardinality = ({card_str})>"
 
 
     def short_repr(self):

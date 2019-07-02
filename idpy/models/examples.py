@@ -26,12 +26,12 @@ def wildcatter():
     [[0.6, 0.3, 0.1], [1/3, 1/3, 1/3]]
     ])
 
-    pS_TO = potential_table(KIND.PROBABILITY, v, variables=[s, t, o])
-    pO = potential_table(KIND.PROBABILITY, [0.5, 0.3, 0.2], variables=[o])
+    pS_TO = PotentialTable(KIND.PROBABILITY, v, variables=[s, t, o])
+    pO = PotentialTable(KIND.PROBABILITY, [0.5, 0.3, 0.2], variables=[o])
 
-    uDO = potential_table(KIND.UTILITY, [[-70, 50, 200], [0, 0, 0]], variables = [d, o])
+    uDO = PotentialTable(KIND.UTILITY, [[-70, 50, 200], [0, 0, 0]], variables = [d, o])
 
-    uT = potential_table(KIND.UTILITY, [-10, 0], t)
+    uT = PotentialTable(KIND.UTILITY, [-10, 0], t)
 
     id.add_prob_potentials(pS_TO, pO)
     id.add_potential(c, uT)

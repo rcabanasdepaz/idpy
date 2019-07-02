@@ -110,6 +110,9 @@ class IDiagram():
     def add_prob_potentials(self, *potlist):
         for p in potlist: self.add_potential(p.head[0], p)
 
+    def add_potentials(self, pot_dict):
+        for v,p in pot_dict.items(): self.add_potential(v, p)
+
 
     def __check_node_pot(self, node, pot):
 
@@ -147,6 +150,7 @@ class IDiagram():
         if exclude_none:
             return {n:p for n,p in pot_dict.items() if p is not None}
         return pot_dict
+
 
 
 

@@ -17,9 +17,9 @@ self.add_arc("a", "d2")
 self.add_arc("d1", "a")
 
 
-upot = potential_table(KIND.UTILITY, [[20, 30, 10], [0, 1, -4]], variables=["x", "d2"])
-px_d1 = potential_table(KIND.PROBABILITY, [[0.3, 0.5, 0.4], [0.7, 0.5, 0.6]], variables=["x", "d2"])
-pa_d2 = potential_table(KIND.PROBABILITY, [[0.4, 0.2], [0.3, 0.1], [0.3, 0.7]], variables=["a", "d1"])
+upot = PotentialTable(KIND.UTILITY, [[20, 30, 10], [0, 1, -4]], variables=["x", "d2"])
+px_d1 = PotentialTable(KIND.PROBABILITY, [[0.3, 0.5, 0.4], [0.7, 0.5, 0.6]], variables=["x", "d2"])
+pa_d2 = PotentialTable(KIND.PROBABILITY, [[0.4, 0.2], [0.3, 0.1], [0.3, 0.7]], variables=["a", "d1"])
 
 self.add_prob_potentials(px_d1, pa_d2)
 self.add_potential("u", upot)
@@ -35,4 +35,3 @@ self.add_nonforgetting()
 upot.short_repr()
 
 
-self
